@@ -213,7 +213,6 @@ export default defineComponent({
       }
     }
 
-    const defaultBranch = computed(() => branches.value.find((b) => b.default)?.name ?? "");
     async function loadBranches() {
       const bs = await busy(() => git.branches());
       if (!bs) return;
