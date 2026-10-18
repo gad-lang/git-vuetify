@@ -20,7 +20,7 @@
 // its blame button, who changed each line last.
 import { computed, defineComponent, h, onMounted, reactive, ref, watch, type PropType } from "vue";
 import { VBtn, VBtnToggle, VCard, VCardActions, VCardText, VChip, VMenu, VProgressCircular, VSelect, VSpacer, VTextField } from "./vuetify";
-import { diffLabels, gitMessagesOf, type GitMessages } from "./messages";
+import { diffLabels, useGitMessages, type GitMessages } from "./messages";
 import DiffBrowser from "./diff/DiffBrowser.vue";
 import type { Content, DiffFile } from "./diff/diffBrowserContext";
 import type { GitApi, GitBlame, GitBranch, GitCommit, GitCommitDetail, GitLogFilter } from "./api";
@@ -101,13 +101,13 @@ export default defineComponent({
     dark: { type: Boolean, default: false },
     /** the file open (in an editor beside): the file history's, until another is typed */
     openPath: { type: String, default: "" },
-    /** the texts, over DEFAULT_GIT_MESSAGES (English) */
+    /** the texts, over the app's vue-i18n's (gadGit) and the defaults */
     messages: { type: Object as PropType<Partial<GitMessages>>, default: undefined },
   },
   // slots: actions — at the end of the bar (an expand button)
   setup(props, { slots }) {
     const git = props.api;
-    const m = gitMessagesOf(() => props.messages);
+    const m = useGitMessages(() => props.messages);
     const ctx = { openPath: computed(() => props.openPath), dark: computed(() => props.dark) };
     const canCompare = !!(git.compare && git.compareDiff);
 

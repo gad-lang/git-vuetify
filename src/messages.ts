@@ -1,4 +1,5 @@
 import { computed, type ComputedRef, type InjectionKey } from "vue";
+import { useWords, type Locales } from "./i18n";
 
 /** GitMessages are the texts of the Changes and Git panels (and of the diff
  * browser in them), translatable: the panels' `messages` prop gives them —
@@ -262,6 +263,22 @@ export const GIT_MESSAGES_PT_BR: GitMessages = {
 };
 
 export const GitMessagesKey: InjectionKey<ComputedRef<GitMessages>> = Symbol("gad-git-messages");
+
+/** GIT_I18N_NAMESPACE is the namespace of the panels' words in the app's
+ * vue-i18n: `{ gadGit: { refresh: "…", … } }` in a locale's messages. */
+export const GIT_I18N_NAMESPACE = "gadGit";
+
+/** GIT_I18N_MESSAGES are the defaults by locale, as vue-i18n's messages
+ * (`createI18n({ messages: GIT_I18N_MESSAGES })`, or merged). */
+export const GIT_I18N_MESSAGES: Locales<{ gadGit: GitMessages }> = {
+  en: { gadGit: DEFAULT_GIT_MESSAGES },
+  pt: { gadGit: GIT_MESSAGES_PT_BR },
+};
+
+/** useGitMessages are the panels' words — the app's vue-i18n's (gadGit), in
+ * its locale, over the defaults —, the given ones over them. In setup. */
+export const useGitMessages = (given?: () => Partial<GitMessages> | undefined): ComputedRef<GitMessages> =>
+  useWords<GitMessages>(GIT_I18N_NAMESPACE, { en: DEFAULT_GIT_MESSAGES, pt: GIT_MESSAGES_PT_BR }, given);
 
 /** gitMessagesOf are the messages given over the defaults (an empty one is
  * the default's too). */

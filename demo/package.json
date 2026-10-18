@@ -21,6 +21,7 @@
     "dockview-core": "^7.0.4",
     "dockview-vue": "^7.0.4",
     "vue": "^3.4.0",
+    "vue-i18n": "^11.1.11",
     "vuetify": "^3.8.0"
   },
   "devDependencies": {

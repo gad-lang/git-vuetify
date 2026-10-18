@@ -2,9 +2,10 @@
 // backend's (/api/, ../server) —, side by side or one at a time, in English
 // or Brazilian Portuguese, light or dark.
 import { computed, defineComponent, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { useTheme } from "vuetify";
 import { VApp, VAppBar, VAppBarTitle, VBtn, VBtnToggle, VMain, VSpacer, VTextField } from "vuetify/components";
-import { ChangesPanel, createHttpGitApi, GIT_MESSAGES_PT_BR, GitPanel } from "@gad-lang/git-vuetify";
+import { ChangesPanel, createHttpGitApi, GitPanel } from "@gad-lang/git-vuetify";
 
 const api = createHttpGitApi("/api/");
 
@@ -14,8 +15,9 @@ export default defineComponent({
     const theme = useTheme();
     const dark = computed(() => theme.global.current.value.dark);
     const view = ref<"git" | "changes" | "both">("git");
-    const lang = ref<"en" | "pt">(navigator.language.startsWith("pt") ? "pt" : "en");
-    const messages = computed(() => (lang.value === "pt" ? GIT_MESSAGES_PT_BR : undefined));
+    // the language: the app's vue-i18n's locale — the panels follow it
+    const { locale } = useI18n({ useScope: "global" });
+    const lang = computed({ get: () => (String(locale.value).startsWith("pt") ? "pt" : "en"), set: (v) => (locale.value = v) });
     // the file "open": the Git panel's file history follows it
     const openPath = ref("");
     const writes = ref(0);
@@ -51,12 +53,12 @@ export default defineComponent({
           <div class="demo-panels" style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 49px)" }}>
             {view.value !== "changes" && (
               <div style={{ flex: "1 1 0", minHeight: 0 }}>
-                <GitPanel api={api} dark={dark.value} openPath={openPath.value} messages={messages.value} />
+                <GitPanel api={api} dark={dark.value} openPath={openPath.value} />
               </div>
             )}
             {view.value !== "git" && (
               <div style={{ flex: "1 1 0", minHeight: 0, borderTop: "1px solid rgba(var(--v-border-color), var(--v-border-opacity))" }}>
-                <ChangesPanel api={api} dark={dark.value} writes={writes.value} messages={messages.value} />
+                <ChangesPanel api={api} dark={dark.value} writes={writes.value} />
               </div>
             )}
           </div>

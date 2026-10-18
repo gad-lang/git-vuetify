@@ -30,11 +30,15 @@ export {
 } from "./api";
 export {
   DEFAULT_GIT_MESSAGES,
+  GIT_I18N_MESSAGES,
+  GIT_I18N_NAMESPACE,
   GIT_MESSAGES_PT_BR,
   GitMessagesKey,
   diffLabels,
   gitMessagesOf,
+  useGitMessages,
   type GitMessages,
 } from "./messages";
+export { installI18nDefaults, useWords, type Locales } from "./i18n";
 export * from "./diff";
 export { ResizeHandle, useStoredSize } from "./resize";

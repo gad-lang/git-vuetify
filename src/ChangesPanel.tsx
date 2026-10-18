@@ -5,7 +5,7 @@
 import { defineComponent, h, onBeforeUnmount, onMounted, ref, watch, type PropType } from "vue";
 import { VBtn, VProgressCircular } from "./vuetify";
 import HelpButton from "./HelpButton";
-import { diffLabels, gitMessagesOf, type GitMessages } from "./messages";
+import { diffLabels, useGitMessages, type GitMessages } from "./messages";
 import DiffBrowser from "./diff/DiffBrowser.vue";
 import type { Content, DiffFile, SaveState } from "./diff/diffBrowserContext";
 import type { GitApi } from "./api";
@@ -23,7 +23,7 @@ export default defineComponent({
     readonly: { type: Boolean, default: false },
     /** a counter of the files written beside: its change looks again */
     writes: { type: Number, default: 0 },
-    /** the texts, over DEFAULT_GIT_MESSAGES (English) */
+    /** the texts, over the app's vue-i18n's (gadGit) and the defaults */
     messages: { type: Object as PropType<Partial<GitMessages>>, default: undefined },
   },
   emits: {
@@ -33,7 +33,7 @@ export default defineComponent({
   // slots: actions — at the end of the bar (an expand button)
   setup(props, { emit, slots }) {
     const git = props.api;
-    const m = gitMessagesOf(() => props.messages);
+    const m = useGitMessages(() => props.messages);
     const files = ref<DiffFile[]>([]);
     const error = ref("");
     const loading = ref(false);

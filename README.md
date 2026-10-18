@@ -30,8 +30,22 @@ own:
 - **`ResizeHandle` / `useStoredSize`** — the edges the panes are resized by,
   their sizes kept.
 
-The texts are in English (`DEFAULT_GIT_MESSAGES`) and Brazilian Portuguese
-(`GIT_MESSAGES_PT_BR`); any of them can be given.
+The texts are **vue-i18n**'s: the panels read the namespace `gadGit` of the
+app's global vue-i18n, in its locale (or the locale's language: `pt_BR`,
+`pt`), and follow it when it changes. Their defaults — English
+(`DEFAULT_GIT_MESSAGES`) and Brazilian Portuguese (`GIT_MESSAGES_PT_BR`) — are
+merged under what the app has, so the app's translations win:
+
+```ts
+const i18n = createI18n({ legacy: false, locale: "pt", fallbackLocale: "en" });
+// your words, any of them (the rest are the defaults)
+i18n.global.mergeLocaleMessage("pt", { gadGit: { refresh: "Recarregar" } });
+```
+
+The `messages` prop is over all of it. With no vue-i18n installed in the app
+(`app.use`), the defaults of the browser's language. `GIT_I18N_MESSAGES` are
+the defaults as vue-i18n messages; `useWords(ns, defaults, given)` is the
+same for a component of yours.
 
 The components are **backend-agnostic**: they drive a `GitApi`.
 `createHttpGitApi(base)` is the client of its HTTP API, which three servers
@@ -46,7 +60,7 @@ answer:
 ## Install
 
 ```sh
-bun add @gad-lang/git-vuetify vue vuetify dockview-vue
+bun add @gad-lang/git-vuetify vue vuetify vue-i18n dockview-vue
 # optional, for gad's languages in the compare: @gad-lang/codemirror-gad
 ```
 
