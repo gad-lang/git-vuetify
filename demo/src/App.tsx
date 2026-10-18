@@ -45,7 +45,7 @@ export default defineComponent({
             <VBtn value="pt" size="small">PT</VBtn>
           </VBtnToggle>
           <VBtn icon={dark.value ? "mdi-weather-sunny" : "mdi-weather-night"} size="small" variant="text"
-            onClick={() => (theme.global.name.value = dark.value ? "light" : "dark")} />
+            {...{ onClick: () => (theme.global.name.value = dark.value ? "light" : "dark") }} />
         </VAppBar>
         <VMain>
           <div class="demo-panels" style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 49px)" }}>

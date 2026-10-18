@@ -1,0 +1,30 @@
+# Checks every push and pull request, out of any monorepo: the package
+# installed from its own bun.lock, typechecked, tested (the graph, and the
+# example backend on a repository the test makes — git is the runner's),
+# built; and the demo built.
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.14"
+      - name: Install
+        run: bun install --frozen-lockfile
+      - name: Typecheck
+        run: bun run typecheck
+      - name: Test
+        run: bun test
+      - name: Build
+        run: bun run build
+      - name: Build the demo
+        run: bun run --cwd demo build
