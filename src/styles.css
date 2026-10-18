@@ -1,0 +1,321 @@
+/* The Changes and Git panels: their bars, columns, the log, the filters, the
+   blame, the help; the edges panes are resized by. */
+/* The Changes and Git panels: a bar (its right free for the expand button),
+   the rest filling the panel */
+.gad-git__changes,
+.gad-git__git {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  color: rgb(var(--v-theme-on-surface));
+}
+.gad-git__git-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  height: 32px;
+  padding: 0 6px 0 10px;
+  border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  font-size: 0.8125rem;
+}
+.gad-git__git-title {
+  font-weight: 500;
+}
+.gad-git__git-count {
+  padding: 0 6px;
+  border-radius: 8px;
+  background: rgba(var(--v-theme-on-surface), 0.08);
+  font-size: 0.75rem;
+}
+.gad-git__git-fill {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.gad-git__git-fill > .vx-diff-browser {
+  border: 0;
+  border-radius: 0;
+}
+.gad-git__git-cols {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+/* the branches and the log of the widths dragged (ResizeHandle); the detail
+   the rest */
+.gad-git__git-branches,
+.gad-git__git-log {
+  flex: 0 0 auto;
+}
+.gad-git__git-detail {
+  flex: 1 1 auto;
+}
+.gad-git__git-cols > div {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+.gad-git__git-cols > .gad-git__git-log,
+.gad-git__git-cols > .gad-git__git-detail {
+  border-left: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
+.gad-git__git-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  min-height: 24px;
+  padding: 2px 4px 0 10px;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(var(--v-theme-on-surface), 0.6);
+}
+.gad-git__git-branch,
+.gad-git__git-commit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  cursor: pointer;
+  font-size: 0.8125rem;
+}
+.gad-git__git-branch {
+  height: 26px;
+  padding: 0 10px;
+}
+.gad-git__git-commit {
+  height: 24px;
+  padding-right: 8px;
+}
+.gad-git__git-branch:hover,
+.gad-git__git-commit:hover {
+  background: rgba(var(--v-theme-on-surface), 0.05);
+}
+.gad-git__git-branch--active,
+.gad-git__git-commit--active {
+  background: rgba(var(--v-theme-primary), 0.14);
+}
+.gad-git__git-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gad-git__git-graph {
+  flex: 0 0 auto;
+}
+.gad-git__git-subject {
+  flex: 1 1 auto;
+}
+.gad-git__git-meta {
+  flex: 0 0 auto;
+  font-size: 0.75rem;
+  color: rgba(var(--v-theme-on-surface), 0.6);
+}
+.gad-git__git-ref {
+  flex: 0 0 auto;
+  padding: 0 5px;
+  border-radius: 4px;
+  font-size: 0.6875rem;
+  background: rgba(var(--v-theme-info), 0.16);
+  color: rgb(var(--v-theme-info));
+}
+.gad-git__git-detail {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden !important;
+}
+.gad-git__git-message {
+  flex: 0 0 auto;
+  overflow: auto;
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  font-size: 0.8125rem;
+}
+.gad-git__git-message-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: rgba(var(--v-theme-on-surface), 0.7);
+}
+.gad-git__git-message pre {
+  margin: 6px 0 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+}
+.gad-git__git-spacer {
+  flex: 1 1 auto;
+}
+/* the bar's fields: the branch navigated, the file of the history, the
+   compare's sides */
+.gad-git__git-modes {
+  height: 24px !important;
+  margin: 0 4px;
+}
+.gad-git__git-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  font-size: 0.75rem;
+  color: rgba(var(--v-theme-on-surface), 0.7);
+}
+.gad-git__git-field--grow {
+  flex: 1 1 200px;
+}
+.gad-git__git-select {
+  height: 22px;
+  max-width: 220px;
+  padding: 0 4px;
+  border: 1px solid rgba(var(--v-border-color), 0.3);
+  border-radius: 4px;
+  background: rgb(var(--v-theme-surface));
+  color: rgb(var(--v-theme-on-surface));
+  font-size: 0.75rem;
+}
+.gad-git__git-path {
+  flex: 1 1 auto;
+  max-width: none;
+  min-width: 80px;
+}
+.gad-git__git-default {
+  flex: 0 0 auto;
+  padding: 0 4px;
+  border-radius: 4px;
+  font-size: 0.625rem;
+  background: rgba(var(--v-theme-success), 0.16);
+  color: rgb(var(--v-theme-success));
+}
+.gad-git__git-commit--second {
+  background: rgba(var(--v-theme-warning), 0.18);
+}
+.gad-git__git-dot {
+  flex: 0 0 auto;
+  width: 14px;
+}
+.gad-git__git-with,
+.gad-git__git-compare-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  padding: 4px 10px;
+  border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  font-size: 0.75rem;
+}
+.gad-git__git-compare-title {
+  font-family: monospace;
+}
+
+/* the "?" of a part of a panel: what it does, how to use it */
+.gad-git__help {
+  opacity: 0.6;
+}
+.gad-git__help:hover {
+  opacity: 1;
+}
+.gad-git__help-card p {
+  margin: 0 0 6px;
+}
+.gad-git__help-list {
+  margin: 0 0 6px 18px;
+}
+.gad-git__help-corner {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  z-index: 2;
+}
+.gad-git__git-detail {
+  position: relative;
+}
+
+/* the log's filters: the icon and the count of those applied, their chips */
+.gad-git__git-filter-btn {
+  position: relative;
+  display: inline-flex;
+}
+.gad-git__git-filter-count {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  border-radius: 7px;
+  background: rgb(var(--v-theme-primary));
+  color: rgb(var(--v-theme-on-primary));
+  font-size: 0.625rem;
+  line-height: 14px;
+  text-align: center;
+  pointer-events: none;
+}
+.gad-git__git-chips {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 2px 6px 0;
+  text-transform: none;
+}
+/* a file's blame: the commit of each run of lines, its number, the line */
+.gad-git__blame {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.gad-git__blame table {
+  border-collapse: collapse;
+  min-width: 100%;
+}
+.gad-git__blame tr.gad-git__blame-first td {
+  border-top: 1px solid rgba(var(--v-border-color), 0.12);
+}
+.gad-git__blame-ann {
+  width: 1%;
+  max-width: 280px;
+  padding: 0 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  font-family: inherit;
+  color: rgba(var(--v-theme-on-surface), 0.75);
+  vertical-align: top;
+}
+.gad-git__blame-ann--none {
+  cursor: default;
+  font-style: italic;
+}
+.gad-git__blame-ann:hover {
+  color: rgb(var(--v-theme-primary));
+}
+.gad-git__blame-date {
+  margin-right: 8px;
+}
+.gad-git__blame-author {
+  display: inline-block;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+}
+.gad-git__blame-hash {
+  margin-left: 8px;
+  opacity: 0.6;
+}
+.gad-git__blame-num {
+  padding: 0 8px;
+  text-align: right;
+  color: rgba(var(--v-theme-on-surface), 0.4);
+  user-select: none;
+  vertical-align: top;
+}
+.gad-git__blame-code {
+  padding: 0 8px;
+  white-space: pre;
+  width: 99%;
+}

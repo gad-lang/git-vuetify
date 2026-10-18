@@ -1,0 +1,97 @@
+{
+  "name": "@gad-lang/git-vuetify",
+  "version": "0.1.0-rc.1",
+  "description": "Reusable Vuetify 3 components for a git repository: the branches and their log as a graph, a file's history, two refs compared, the log filtered, a file's blame, and the changes not committed compared and edited (IntelliJ's compare). Backend-agnostic — drive it with any GitApi implementation (gad's `gad ide` server, or the TypeScript example backend).",
+  "type": "module",
+  "main": "dist/git-vuetify.js",
+  "module": "dist/git-vuetify.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/git-vuetify.js",
+      "default": "./dist/git-vuetify.js"
+    },
+    "./style.css": "./dist/style.css"
+  },
+  "sideEffects": [
+    "*.css",
+    "*.vue"
+  ],
+  "files": [
+    "dist",
+    "server"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gad-lang/git-vuetify.git"
+  },
+  "homepage": "https://github.com/gad-lang/git-vuetify#readme",
+  "bugs": {
+    "url": "https://github.com/gad-lang/git-vuetify/issues"
+  },
+  "keywords": [
+    "gad",
+    "git",
+    "diff",
+    "blame",
+    "vue",
+    "vuetify",
+    "codemirror"
+  ],
+  "scripts": {
+    "build": "vite build && vue-tsc -p tsconfig.build.json --emitDeclarationOnly",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "bun run clean && bun run build",
+    "typecheck": "vue-tsc -p tsconfig.json --noEmit",
+    "test": "bun test",
+    "server": "bun run server/main.ts",
+    "dev": "bun run --cwd demo dev"
+  },
+  "peerDependencies": {
+    "@gad-lang/codemirror-gad": "^0.1.0",
+    "dockview-vue": "^7.0.4",
+    "vue": "^3.4.0",
+    "vuetify": "^3.8.0"
+  },
+  "peerDependenciesMeta": {
+    "@gad-lang/codemirror-gad": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@codemirror/commands": "^6.6.0",
+    "@codemirror/lang-css": "^6.3.1",
+    "@codemirror/lang-go": "^6.0.1",
+    "@codemirror/lang-html": "^6.4.11",
+    "@codemirror/lang-javascript": "^6.2.5",
+    "@codemirror/lang-json": "^6.0.2",
+    "@codemirror/lang-markdown": "^6.5.0",
+    "@codemirror/language": "^6.10.0",
+    "@codemirror/legacy-modes": "^6.5.3",
+    "@codemirror/merge": "^6.12.2",
+    "@codemirror/state": "^6.4.0",
+    "@codemirror/theme-one-dark": "^6.1.0",
+    "@codemirror/view": "^6.34.0"
+  },
+  "devDependencies": {
+    "@gad-lang/codemirror-gad": "^0.1.0-rc.1",
+    "@types/bun": "^1.1.0",
+    "@vitejs/plugin-vue": "^5.1.0",
+    "@vitejs/plugin-vue-jsx": "^4.0.0",
+    "dockview-vue": "^7.0.4",
+    "typescript": "^5.6.0",
+    "vite": "^5.4.0",
+    "vue": "^3.4.0",
+    "vue-tsc": "^2.1.0",
+    "vuetify": "^3.8.0"
+  },
+  "license": "MIT",
+  "workspaces": [
+    "demo"
+  ]
+}
