@@ -121,10 +121,16 @@ async function jsonFetch<T>(method: string, url: string, body?: unknown): Promis
 /**
  * createHttpGitApi is the HTTP client of a server whose git API is at
  * base + "git/…": "api/ide/" for a `gad ide` server, "/api/" for the example
- * backend (server/). "" — the default — is relative to the page.
+ * backend (server/). "" — the default — is relative to the page. repo, when
+ * given, is a folder of the workspace that is a repository (its git/repos):
+ * every route on it, its paths of that folder.
  */
-export function createHttpGitApi(base = ""): GitApi {
-  const u = (p: string) => base + p;
+export function createHttpGitApi(base = "", repo = ""): GitApi {
+  const u = (p: string) => {
+    if (!repo) return base + p;
+    const sep = p.includes("?") ? (p.endsWith("?") ? "" : "&") : "?";
+    return base + p + sep + "repo=" + encodeURIComponent(repo) + (p.endsWith("?") ? "&" : "");
+  };
   const q = (params: Record<string, string | number | undefined>) =>
     Object.entries(params)
       .filter(([, v]) => v !== undefined && v !== "")
