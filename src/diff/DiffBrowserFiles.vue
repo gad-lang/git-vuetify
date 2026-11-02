@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, h, inject, reactive, type FunctionalComponent, type Slot } from 'vue'
+import { computed, h, inject, reactive, ref, watch, type FunctionalComponent, type Slot } from 'vue'
 import { VChip, VIcon } from 'vuetify/components'
 import { diffBrowserKey, renamedTo, statusColor, treePath, type DiffFile } from './diffBrowserContext'
 import { gadFileIconFor } from './gadFileIcons'
@@ -9,6 +9,10 @@ import { fileIconFor } from './fileIcons'
 // A folder opens and closes; a file opens its tab. A renamed (moved) file is
 // where it was, with where it went: its new name, or its new path when it
 // went to another folder.
+//
+// The box Tree (kept in the browser) shows the folders as a tree; off, a
+// list of two levels: each folder by its whole path from the repository's
+// root (ctx.root), its files by their names under it.
 
 defineProps<{ params?: unknown }>()
 const ctx = inject(diffBrowserKey)!
@@ -19,6 +23,43 @@ interface Node {
   file?: DiffFile
   children: Node[]
 }
+
+// the tree, or the list (off)
+const MODE_KEY = 'vx-diff-files-tree'
+const treeMode = ref(true)
+try {
+  treeMode.value = localStorage.getItem(MODE_KEY) !== '0'
+} catch {
+  /* no storage */
+}
+watch(treeMode, (v) => {
+  try {
+    localStorage.setItem(MODE_KEY, v ? '1' : '0')
+  } catch {
+    /* no storage */
+  }
+})
+
+// list is the files by their folders: a node a folder (its path from the
+// repository's root; "/" the root itself), its files under it by name
+const list = computed<Node[]>(() => {
+  const root = ctx.root.value.replace(/^\/+|\/+$/g, '')
+  const groups = new Map<string, Node>()
+  for (const f of ctx.files.value) {
+    const p = treePath(f)
+    const i = p.lastIndexOf('/')
+    const dir = [root, i < 0 ? '' : p.slice(0, i)].filter(Boolean).join('/')
+    let g = groups.get(dir)
+    if (!g) {
+      g = { name: dir || '/', path: 'list:' + dir, children: [] }
+      groups.set(dir, g)
+    }
+    g.children.push({ name: p.slice(i + 1), path: p, file: f, children: [] })
+  }
+  const out = [...groups.values()].sort((a, b) => a.name.localeCompare(b.name))
+  out.forEach((g) => g.children.sort((a, b) => a.name.localeCompare(b.name)))
+  return out
+})
 
 const tree = computed<Node[]>(() => {
   const root: Node = { name: '', path: '', children: [] }
@@ -61,7 +102,7 @@ const rows = computed(() => {
       if (!n.file && !closed.has(n.path)) walk(n.children, depth + 1)
     }
   }
-  walk(tree.value, 0)
+  walk(treeMode.value ? tree.value : list.value, 0)
   return out
 })
 
@@ -83,6 +124,10 @@ void h
 
 <template>
   <div class="vx-diff-tree">
+    <label class="vx-diff-tree-mode" data-diff-tree-mode>
+      <input v-model="treeMode" type="checkbox" />
+      <span>{{ ctx.labels.value.tree }}</span>
+    </label>
     <div
       v-for="r in rows"
       :key="r.node.path + (r.node.file ? '' : '/')"

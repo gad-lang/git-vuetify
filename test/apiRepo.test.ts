@@ -36,4 +36,9 @@ describe("createHttpGitApi with a repository", () => {
     expect(c).toEqual({ hash: "abc1234", subject: "m" });
     expect(got).toEqual({ url: "api/ide/git/commit/new?repo=b", method: "POST", body: JSON.stringify({ message: "m", paths: ["x.gad", "y.gad"] }) });
   });
+  test("root: the workspace's folder in the repository", async () => {
+    globalThis.fetch = (async (u: string) => { urls.push(String(u)); return new Response(JSON.stringify({ root: "src" }), { status: 200 }); }) as typeof fetch;
+    expect(await createHttpGitApi("api/ide/").root!()).toBe("src");
+    expect(urls[urls.length - 1]).toBe("api/ide/git/root");
+  });
 });

@@ -14,6 +14,7 @@ import { diffLabels, useGitMessages, type GitMessages } from "./messages";
 import DiffBrowser from "./diff/DiffBrowser.vue";
 import type { Content, DiffFile, SaveState } from "./diff/diffBrowserContext";
 import type { GitApi } from "./api";
+import { useGitRoot } from "./root";
 
 const message = (e: unknown) => String((e as { message?: string })?.message || e);
 
@@ -42,6 +43,8 @@ export default defineComponent({
   // slots: actions — at the end of the bar (an expand button)
   setup(props, { emit, slots }) {
     const git = props.api;
+    // the folders of the list from the repository's root
+    const root = useGitRoot(git);
     const m = useGitMessages(() => props.messages);
     const files = ref<DiffFile[]>([]);
     const error = ref("");
@@ -150,6 +153,7 @@ export default defineComponent({
             save: props.readonly ? undefined : save,
             dark: props.dark,
             height: "100%",
+            root: root.value,
           }, commitOn.value ? {
             lead: ({ file }: { file: DiffFile }) => (
               <input

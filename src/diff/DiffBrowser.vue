@@ -58,6 +58,10 @@ const props = withDefaults(defineProps<{
   revertText?: string
   prevText?: string
   nextText?: string
+  // the files' panel: its box of the tree (else a list of the folders)
+  treeText?: string
+  // the files' folder in the repository ("" its root)
+  root?: string
   // dark: the editors' theme; Vuetify's when not given
   dark?: boolean
   // altView says whether a file is shown by the `view` slot ({ file }) in
@@ -190,7 +194,9 @@ provide(diffBrowserKey, {
     revert: props.revertText,
     prev: props.prevText,
     next: props.nextText,
+    tree: props.treeText ?? 'Tree',
   })),
+  root: computed(() => props.root ?? ''),
   dark,
   editable: (file: DiffFile) => !!props.save && !file.readOnly && !file.binary,
   save: (path: string, state: SaveState) => {
@@ -294,6 +300,25 @@ defineExpose({ open, reload })
   padding: 4px 0;
   font-size: 0.8125rem;
   color: rgb(var(--v-theme-on-surface));
+}
+/* the box of the tree (else the list), at the top of the files */
+.vx-diff-tree-mode {
+  position: sticky;
+  top: -4px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px 4px;
+  font-size: 12px;
+  cursor: pointer;
+  user-select: none;
+  background: rgb(var(--v-theme-surface));
+  color: rgba(var(--v-theme-on-surface), 0.75);
+}
+.vx-diff-tree-mode input {
+  accent-color: rgb(var(--v-theme-primary));
+  cursor: pointer;
 }
 .vx-diff-tree-row {
   display: flex;

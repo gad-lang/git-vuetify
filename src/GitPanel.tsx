@@ -24,6 +24,7 @@ import { diffLabels, useGitMessages, type GitMessages } from "./messages";
 import DiffBrowser from "./diff/DiffBrowser.vue";
 import type { Content, DiffFile } from "./diff/diffBrowserContext";
 import type { GitApi, GitBlame, GitBranch, GitCommit, GitCommitDetail, GitLogFilter } from "./api";
+import { useGitRoot } from "./root";
 import BlameView, { NOT_COMMITTED } from "./BlameView";
 import { graphRows, type GraphRow } from "./gitGraph";
 import { ResizeHandle, useStoredSize } from "./resize";
@@ -107,6 +108,8 @@ export default defineComponent({
   // slots: actions — at the end of the bar (an expand button)
   setup(props, { slots }) {
     const git = props.api;
+    // the folders of the files' lists from the repository's root
+    const root = useGitRoot(git);
     const m = useGitMessages(() => props.messages);
     const ctx = { openPath: computed(() => props.openPath), dark: computed(() => props.dark) };
     const canCompare = !!(git.compare && git.compareDiff);
@@ -496,7 +499,7 @@ export default defineComponent({
       <div class="gad-git__git-fill">
         {h(
           DiffBrowser,
-          { ...diffLabels(m.value), key: v.key, files: v.files, load: v.load, dark: ctx.dark.value, height: "100%", oldLabel: v.oldLabel, newLabel: v.newLabel,
+          { ...diffLabels(m.value), root: root.value, key: v.key, files: v.files, load: v.load, dark: ctx.dark.value, height: "100%", oldLabel: v.oldLabel, newLabel: v.newLabel,
             altView: (f: DiffFile) => blameOn.has(f.path) },
           {
             toolbar: ({ file }: { file: DiffFile }) => fileButtons(file),

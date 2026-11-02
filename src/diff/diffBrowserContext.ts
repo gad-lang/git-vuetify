@@ -53,6 +53,7 @@ export interface Labels {
   revert: string
   prev: string
   next: string
+  tree: string
 }
 
 export interface DiffBrowserContext {
@@ -66,6 +67,9 @@ export interface DiffBrowserContext {
   active: { path: string }
   open: (file: DiffFile) => void
   labels: ComputedRef<Labels>
+  // the files' folder in the repository ("" its root): the list's folders
+  // shown from the repository's root
+  root: ComputedRef<string>
   // the theme's darkness, for the editors
   dark: ComputedRef<boolean>
   // whether a file is edited here: save given, the file not read only

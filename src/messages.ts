@@ -91,6 +91,9 @@ export interface GitMessages {
    * commitMessage), all the files chosen (the box of all), what was
    * committed, none chosen */
   commit: string;
+  /** the files as a tree of their folders (else a list: each folder, from
+   * the repository's root, with its files) */
+  tree: string;
   commitAll: string;
   committed: string;
   commitNone: string;
@@ -178,6 +181,7 @@ export const DEFAULT_GIT_MESSAGES: GitMessages = {
   binary: "A binary file: it is not compared.",
   noChanges: "No changes.",
   commit: "Commit",
+  tree: "Tree",
   commitAll: "All files",
   committed: "Committed",
   commitNone: "Choose the files to commit.",
@@ -259,6 +263,7 @@ export const GIT_MESSAGES_PT_BR: GitMessages = {
   binary: "Um arquivo binário: não é comparado.",
   noChanges: "Nenhuma alteração.",
   commit: "Commit",
+  tree: "Árvore",
   commitAll: "Todos os arquivos",
   committed: "Commit feito",
   commitNone: "Escolha os arquivos do commit.",
@@ -324,4 +329,5 @@ export const diffLabels = (m: GitMessages) => ({
   revertText: m.revert,
   prevText: m.prev,
   nextText: m.next,
+  treeText: m.tree,
 });
