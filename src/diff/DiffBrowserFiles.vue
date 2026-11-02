@@ -65,6 +65,11 @@ const rows = computed(() => {
   return out
 })
 
+// Lead draws the browser's `lead` slot for a file.
+const Lead: FunctionalComponent<{ file: DiffFile }> = (p) => {
+  const slot: Slot | undefined = ctx.lead()
+  return slot ? slot({ file: p.file }) : null
+}
 // Actions draws the browser's `actions` slot for a file.
 const Actions: FunctionalComponent<{ file: DiffFile }> = (p) => {
   const slot: Slot | undefined = ctx.actions()
@@ -89,6 +94,9 @@ void h
       @click="r.node.file ? ctx.open(r.node.file) : toggle(r.node.path)"
     >
       <template v-if="r.node.file">
+        <span v-if="ctx.lead()" class="vx-diff-tree-lead" @click.stop>
+          <Lead :file="r.node.file" />
+        </span>
         <img
           v-if="gadFileIconFor(r.node.file.path)"
           :src="gadFileIconFor(r.node.file.path)"

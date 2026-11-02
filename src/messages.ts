@@ -87,6 +87,13 @@ export interface GitMessages {
   current: string;
   binary: string;
   noChanges: string;
+  /** the Changes panel's commit: its button (the message's box is
+   * commitMessage), all the files chosen (the box of all), what was
+   * committed, none chosen */
+  commit: string;
+  commitAll: string;
+  committed: string;
+  commitNone: string;
   renamedTo: string;
   unchanged: string;
   loading: string;
@@ -170,6 +177,10 @@ export const DEFAULT_GIT_MESSAGES: GitMessages = {
   current: "Current",
   binary: "A binary file: it is not compared.",
   noChanges: "No changes.",
+  commit: "Commit",
+  commitAll: "All files",
+  committed: "Committed",
+  commitNone: "Choose the files to commit.",
   renamedTo: "Renamed to",
   unchanged: "Its content did not change.",
   loading: "Loading…",
@@ -247,6 +258,10 @@ export const GIT_MESSAGES_PT_BR: GitMessages = {
   current: "Atual",
   binary: "Um arquivo binário: não é comparado.",
   noChanges: "Nenhuma alteração.",
+  commit: "Commit",
+  commitAll: "Todos os arquivos",
+  committed: "Commit feito",
+  commitNone: "Escolha os arquivos do commit.",
   renamedTo: "Renomeado para",
   unchanged: "O conteúdo não mudou.",
   loading: "Carregando…",

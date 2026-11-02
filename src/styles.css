@@ -319,3 +319,26 @@
   white-space: pre;
   width: 99%;
 }
+.gad-git__commit {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 8px;
+  border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
+.gad-git__commit-all {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.gad-git__commit-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.gad-git__commit-check {
+  accent-color: rgb(var(--v-theme-primary));
+  cursor: pointer;
+}

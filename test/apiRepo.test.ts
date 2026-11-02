@@ -26,4 +26,14 @@ describe("createHttpGitApi with a repository", () => {
     await createHttpGitApi("api/ide/").changes();
     expect(urls[urls.length - 1]).toBe("api/ide/git/changes");
   });
+  test("commitNew posts the message and the paths", async () => {
+    let got: { url: string; method?: string; body?: string } | undefined;
+    globalThis.fetch = (async (u: string, init?: RequestInit) => {
+      got = { url: String(u), method: init?.method, body: String(init?.body) };
+      return new Response(JSON.stringify({ hash: "abc1234", subject: "m" }), { status: 200 });
+    }) as typeof fetch;
+    const c = await createHttpGitApi("api/ide/", "b").commitNew!("m", ["x.gad", "y.gad"]);
+    expect(c).toEqual({ hash: "abc1234", subject: "m" });
+    expect(got).toEqual({ url: "api/ide/git/commit/new?repo=b", method: "POST", body: JSON.stringify({ message: "m", paths: ["x.gad", "y.gad"] }) });
+  });
 });

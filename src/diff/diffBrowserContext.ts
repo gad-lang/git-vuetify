@@ -74,6 +74,9 @@ export interface DiffBrowserContext {
   save: (path: string, state: SaveState) => void
   // marks a file's tab as having changes not saved
   markDirty: (path: string, dirty: boolean) => void
+  // the browser's `lead` slot, rendered by each file of the tree before its
+  // icon (a check: the files of a commit)
+  lead: () => Slot | undefined
   // the browser's `actions` slot, rendered by each file of the tree
   actions: () => Slot | undefined
   // the browser's `toolbar` slot, rendered in each file's toolbar

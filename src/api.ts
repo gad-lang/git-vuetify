@@ -83,6 +83,9 @@ export interface GitApi {
   diff: (path: string, from?: string) => Promise<DiffFile>;
   /** writes the file changed with content (edited in the compare) */
   save: (path: string, content: string) => Promise<void>;
+  /** commits the files changed of paths (none: all of the workspace) with
+   * message: the commit's short hash and subject */
+  commitNew?: (message: string, paths?: string[]) => Promise<{ hash: string; subject: string }>;
   branches: () => Promise<GitBranch[]>;
   /** the commits of ref, newest first: limit of them after skip — of a file
    * (path), its history, renames followed */
@@ -140,6 +143,7 @@ export function createHttpGitApi(base = "", repo = ""): GitApi {
     changes: () => jsonFetch<{ files: DiffFile[] }>("GET", u("git/changes")).then((r) => r.files || []),
     diff: (path, from) => jsonFetch<DiffFile>("GET", u("git/diff?") + q({ path, from })),
     save: (path, content) => jsonFetch<unknown>("POST", u("git/save"), { path, content }).then(() => undefined),
+    commitNew: (message, paths) => jsonFetch<{ hash: string; subject: string }>("POST", u("git/commit/new"), { message, paths }),
     branches: () =>
       jsonFetch<{ branches: GitBranch[]; default?: string }>("GET", u("git/branches")).then((r) =>
         (r.branches || []).map((b) => (b.name === r.default ? { ...b, default: true } : b)),

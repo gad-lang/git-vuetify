@@ -18,7 +18,8 @@ import { diffBrowserKey, renamedTo, type Content, type DiffFile, type SaveState 
 // dockview's: resized, the tabs moved, split.
 //
 // The comparison is the server's (vuetifyx.NewDiffFile): this only shows it.
-// The `actions` slot ({ file }) is drawn by each file of the tree (a discard);
+// The `actions` slot ({ file }) is drawn by each file of the tree (a discard),
+// the `lead` slot ({ file }) before its icon (a check: chosen to commit);
 // the `toolbar` slot ({ file }) in each file's toolbar, by next and previous
 // (a download); the `view` slot ({ file }), in place of the compare of a file
 // altView says so of (a blame).
@@ -201,6 +202,7 @@ provide(diffBrowserKey, {
     }
   },
   markDirty,
+  lead: () => slots.lead,
   actions: () => slots.actions,
   toolbar: () => slots.toolbar,
   altView: (file: DiffFile) => !!slots.view && !!props.altView?.(file),
@@ -325,6 +327,10 @@ defineExpose({ open, reload })
   color: rgb(var(--v-theme-info));
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.vx-diff-tree-lead {
+  display: inline-flex;
+  margin-right: 4px;
 }
 .vx-diff-tree-actions {
   margin-left: auto;
