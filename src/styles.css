@@ -319,9 +319,16 @@
   white-space: pre;
   width: 99%;
 }
+/* a short panel: the files keep their room, the commit's box scrolls */
+.gad-git__changes > .gad-git__git-fill {
+  min-height: 120px;
+}
 .gad-git__commit {
   display: flex;
+  flex: 0 1 auto;
   flex-direction: column;
+  min-height: 0;
+  overflow: auto;
   gap: 6px;
   padding: 6px 8px;
   border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
