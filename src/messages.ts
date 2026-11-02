@@ -98,6 +98,9 @@ export interface GitMessages {
   stashes: string;
   stashChanges: string;
   newStash: string;
+  /** the picker of a ref: its chip with nothing chosen, its title; a branch to choose first */
+  pickRef: string;
+  chooseBranch: string;
   stashMessage: string;
   includeUntracked: string;
   keepIndex: string;
@@ -212,6 +215,8 @@ export const DEFAULT_GIT_MESSAGES: GitMessages = {
   stashes: "Stashes",
   stashChanges: "Stash changes",
   newStash: "New stash",
+  pickRef: "Choose…",
+  chooseBranch: "Choose a branch: its tip or a commit of its log.",
   stashMessage: "Message (optional)",
   includeUntracked: "Include untracked files",
   keepIndex: "Keep the index (what is staged stays)",
@@ -321,6 +326,8 @@ export const GIT_MESSAGES_PT_BR: GitMessages = {
   stashes: "Stashes",
   stashChanges: "Guardar as alterações (stash)",
   newStash: "Nova stash",
+  pickRef: "Escolher…",
+  chooseBranch: "Escolha uma branch: a ponta ou um commit do log dela.",
   stashMessage: "Mensagem (opcional)",
   includeUntracked: "Incluir os arquivos novos (não rastreados)",
   keepIndex: "Manter o índice (o que está no stage fica)",

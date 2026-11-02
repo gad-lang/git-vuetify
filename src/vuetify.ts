@@ -31,6 +31,7 @@ import {
   VTab as _VTab,
   VTabs as _VTabs,
   VTextarea as _VTextarea,
+  VTooltip as _VTooltip,
   VTextField as _VTextField,
   VWindow as _VWindow,
   VWindowItem as _VWindowItem,
@@ -64,5 +65,6 @@ export const VTab = _VTab as unknown as AnyComponent;
 export const VTabs = _VTabs as unknown as AnyComponent;
 export const VTextField = _VTextField as unknown as AnyComponent;
 export const VTextarea = _VTextarea as unknown as AnyComponent;
+export const VTooltip = _VTooltip as unknown as AnyComponent;
 export const VWindow = _VWindow as unknown as AnyComponent;
 export const VWindowItem = _VWindowItem as unknown as AnyComponent;

@@ -12,8 +12,10 @@ import { VBtn, VCard, VCardActions, VCardText, VCardTitle, VCheckbox, VDialog, V
 import { diffLabels, type GitMessages } from "./messages";
 import DiffBrowser from "./diff/DiffBrowser.vue";
 import type { Content, DiffFile } from "./diff/diffBrowserContext";
-import type { GitApi, GitBranch, GitCommit, GitCommitDetail, GitStash } from "./api";
+import type { GitApi, GitBranch, GitCommitDetail, GitStash } from "./api";
 import HelpButton from "./HelpButton";
+import RefPicker, { type PickedRef } from "./RefPicker";
+import TipBtn from "./TipBtn";
 import { ResizeHandle, useStoredSize } from "./resize";
 
 const message = (e: unknown) => String((e as { message?: string })?.message || e);
@@ -22,10 +24,6 @@ const shortDate = (s: string) => {
   return isNaN(d.getTime()) ? s : d.toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" });
 };
 const short = (ref: string) => (/^[0-9a-f]{40}$/i.test(ref) ? ref.slice(0, 10) : ref);
-
-// what a stash is compared with: nothing (its own changes), the working
-// files, a branch (its tip, or a commit of it), another stash
-type Kind = "" | "work" | "branch" | "stash";
 
 interface View {
   key: string;
@@ -60,11 +58,8 @@ export default defineComponent({
     const stashes = ref<GitStash[]>([]);
     const selected = ref("");
     const detail = ref<GitCommitDetail>();
-    const kind = ref<Kind>("");
-    const cmpBranch = ref("");
-    const cmpCommit = ref("");
-    const cmpStash = ref("");
-    const branchLog = ref<GitCommit[]>([]);
+    // what it is compared with (RefPicker): none, its own changes
+    const picked = ref<PickedRef | null>(null);
     const view = ref<View>();
 
     const listW = useStoredSize("gad-ide.git.stashes", 300, 140, 900);
@@ -109,12 +104,6 @@ export default defineComponent({
         },
       );
 
-    // the commits of the branch compared with: its log (a page)
-    watch(cmpBranch, async (b) => {
-      cmpCommit.value = "";
-      branchLog.value = b ? ((await busy(() => git.log(b, 0, 100))) ?? []) : [];
-    });
-
     let seq = 0;
     async function show() {
       const n = ++seq;
@@ -128,9 +117,9 @@ export default defineComponent({
         if (!d || n !== seq) return;
         detail.value = d;
       }
-      const target =
-        kind.value === "work" ? "" : kind.value === "branch" ? cmpCommit.value || cmpBranch.value : kind.value === "stash" ? cmpStash.value : null;
-      if (target === null || (kind.value !== "work" && !target) || !git.compare) {
+      const p = picked.value;
+      const target = p ? p.ref : null;
+      if (target === null || !git.compare) {
         const d = detail.value!;
         view.value = {
           key: `stash:${st.hash}`,
@@ -143,16 +132,9 @@ export default defineComponent({
       }
       const files = await busy(() => git.compare!(st.hash, target));
       if (!files || n !== seq) return;
-      const other =
-        kind.value === "work"
-          ? m.value.workingFiles
-          : kind.value === "stash"
-            ? (stashes.value.find((s) => s.hash === target)?.ref ?? short(target))
-            : cmpCommit.value
-              ? `${cmpBranch.value} @ ${short(cmpCommit.value)}`
-              : cmpBranch.value;
+      const other = p!.kind === "stash" ? (stashes.value.find((s) => s.hash === target)?.ref ?? short(target)) : p!.label;
       view.value = {
-        key: `stashcmp:${st.hash}:${kind.value}:${target}`,
+        key: `stashcmp:${st.hash}:${p!.kind}:${target}`,
         files: ro(files),
         oldLabel: st.ref,
         newLabel: other,
@@ -160,7 +142,8 @@ export default defineComponent({
         load: (c) => into(c, git.compareDiff!(st.hash, target, c.file.path, c.file.from)),
       };
     }
-    watch([selected, kind, cmpBranch, cmpCommit, cmpStash], () => void show());
+    watch(selected, () => (picked.value = null));
+    watch([selected, picked], () => void show());
 
     // the dialogs: stash (new), unstash, drop, clear
     const dialog = ref<"" | "new" | "unstash" | "drop" | "clear">("");
@@ -248,46 +231,14 @@ export default defineComponent({
       </VDialog>
     );
 
-    const select = (attrs: Record<string, unknown>, value: string, onChange: (v: string) => void, options: { value: string; label: string }[]) => (
-      <select class="gad-git__git-select" value={value} onChange={(e: Event) => onChange((e.target as HTMLSelectElement).value)} {...attrs}>
-        {options.map((o) => (
-          <option value={o.value}>{o.label}</option>
-        ))}
-      </select>
-    );
-
-    // the bar of the compare: with what — and the branch, its commit, the stash
+    // the bar of the compare: with what (a dialog; the chip clears it)
     const compareBar = () => (
       <div class="gad-git__git-with" data-git-stash-compare>
         <span>{m.value.stashKind}</span>
-        {select({ "data-git-stash-kind": "" }, kind.value, (v) => (kind.value = v as Kind), [
-          { value: "", label: `— ${m.value.stashChangesOf}` },
-          { value: "work", label: m.value.workingFiles },
-          { value: "branch", label: m.value.branch },
-          ...(stashes.value.length > 1 ? [{ value: "stash", label: m.value.stashOf }] : []),
-        ])}
-        {kind.value === "branch" && (
-          <>
-            {select({ "data-git-stash-cmp-branch": "" }, cmpBranch.value, (v) => (cmpBranch.value = v), [
-              { value: "", label: "—" },
-              ...props.branches.map((b) => ({ value: b.name, label: b.name })),
-            ])}
-            {cmpBranch.value && (
-              <>
-                <span>{m.value.commitOfBranch}</span>
-                {select({ "data-git-stash-cmp-commit": "", class: "gad-git__git-select gad-git__git-select--wide" }, cmpCommit.value, (v) => (cmpCommit.value = v), [
-                  { value: "", label: m.value.branchTip },
-                  ...branchLog.value.map((c) => ({ value: c.hash, label: `${c.hash.slice(0, 8)} · ${shortDate(c.date)} · ${c.subject}` })),
-                ])}
-              </>
-            )}
-          </>
-        )}
-        {kind.value === "stash" &&
-          select({ "data-git-stash-cmp-stash": "" }, cmpStash.value, (v) => (cmpStash.value = v), [
-            { value: "", label: "—" },
-            ...stashes.value.filter((s) => s.hash !== selected.value).map((s) => ({ value: s.hash, label: `${s.ref} · ${s.message}` })),
-          ])}
+        <RefPicker api={git} messages={m.value} branches={props.branches} allow={["work", "branch", "commit", "stash"]}
+          exclude={selected.value} clearable modelValue={picked.value} placeholder={m.value.stashChangesOf}
+          title={m.value.stashKind} {...{ "onUpdate:modelValue": (v: PickedRef | null) => (picked.value = v) }}
+          data-git-stash-compare-with="" />
       </div>
     );
 
@@ -300,12 +251,9 @@ export default defineComponent({
             <div class="gad-git__git-head">
               <span>{m.value.stashes}</span>
               <span class="gad-git__git-spacer" />
-              <VBtn size="x-small" variant="tonal" color="primary" prependIcon="mdi-plus" class="text-none" title={m.value.stashChanges}
-                data-git-stash-new onClick={() => open("new")}>
-                {m.value.newStash}
-              </VBtn>
-              <VBtn size="x-small" variant="text" density="comfortable" icon="mdi-delete-sweep-outline" title={m.value.clearStashes}
-                disabled={!stashes.value.length} data-git-stash-clear onClick={() => open("clear")} />
+              <TipBtn icon="mdi-plus" tip={m.value.stashChanges} color="primary" data-git-stash-new onClick={() => open("new")} />
+              <TipBtn icon="mdi-delete-sweep-outline" tip={m.value.clearStashes} disabled={!stashes.value.length}
+                data-git-stash-clear onClick={() => open("clear")} />
               <HelpButton id="stashes" title={m.value.stashes} text={m.value.helpStashes} />
             </div>
             {!stashes.value.length && (
@@ -345,14 +293,8 @@ export default defineComponent({
                     {st.branch && <span>{st.branch}</span>}
                     <span>{shortDate(st.date)}</span>
                     <span class="gad-git__git-spacer" />
-                    <VBtn size="x-small" variant="tonal" color="primary" prependIcon="mdi-archive-arrow-up-outline" class="text-none"
-                      data-git-unstash onClick={() => open("unstash")}>
-                      {m.value.unstash}
-                    </VBtn>
-                    <VBtn size="x-small" variant="text" color="error" prependIcon="mdi-delete-outline" class="text-none"
-                      data-git-stash-drop onClick={() => open("drop")}>
-                      {m.value.dropStash}
-                    </VBtn>
+                    <TipBtn icon="mdi-archive-arrow-up-outline" tip={m.value.unstash} color="primary" data-git-unstash onClick={() => open("unstash")} />
+                    <TipBtn icon="mdi-delete-outline" tip={m.value.dropStash} color="error" data-git-stash-drop onClick={() => open("drop")} />
                   </div>
                   <pre>{st.message}</pre>
                 </div>

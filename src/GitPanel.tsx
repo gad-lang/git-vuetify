@@ -30,6 +30,8 @@ import BlameView, { NOT_COMMITTED } from "./BlameView";
 import { graphRows, type GraphRow } from "./gitGraph";
 import { ResizeHandle, useStoredSize } from "./resize";
 import StashView from "./StashView";
+import RefPicker, { branchRef, type PickedRef } from "./RefPicker";
+import TipBtn from "./TipBtn";
 import HelpButton from "./HelpButton";
 
 const message = (e: unknown) => String((e as { message?: string })?.message || e);
@@ -158,6 +160,15 @@ export default defineComponent({
     // the compare's sides
     const compareA = ref("");
     const compareB = ref(WORK);
+    // what the pickers chose (RefPicker): the compare's sides, the history's
+    // "compare with" — their refs the strings above
+    const pickA = ref<PickedRef | null>(null);
+    const pickB = ref<PickedRef | null>({ kind: "work", ref: "", label: m.value.workingFiles });
+    const pickWith = ref<PickedRef | null>(null);
+    const sideOf = (p: PickedRef | null) => (!p ? "" : p.kind === "work" ? WORK : p.ref);
+    watch(pickA, (p) => (compareA.value = sideOf(p)));
+    watch(pickB, (p) => (compareB.value = sideOf(p)));
+    watch(pickWith, (p) => (compareWith.value = sideOf(p)));
 
     // the filters: those applied (kept), the dialog's (draft), the search
     // (applied as typed)
@@ -231,7 +242,7 @@ export default defineComponent({
       // the branch navigated: kept, else the repository's default one
       if (!bs.some((b) => b.name === branch.value))
         branch.value = (bs.find((b) => b.default) ?? bs.find((b) => b.current) ?? bs[0])?.name ?? "HEAD";
-      if (!compareA.value) compareA.value = branch.value;
+      if (!compareA.value) pickA.value = branchRef(branch.value);
     }
 
     // the log of the branch — of the file, in its history —: its first page,
@@ -326,7 +337,7 @@ export default defineComponent({
       if (hash === NOT_COMMITTED) return;
       selected.value = hash;
       second.value = "";
-      if (compareWith.value) compareWith.value = "";
+      if (compareWith.value) pickWith.value = null;
       else void show();
     }
 
@@ -442,8 +453,8 @@ export default defineComponent({
       const v = view.value;
       const deleted = (f.status || "").trim().startsWith("D");
       const blameBtn = git.blame && v?.blameRef !== undefined && !deleted && (
-        <VBtn size="small" variant={blameOn.has(f.path) ? "tonal" : "text"} color={blameOn.has(f.path) ? "primary" : undefined}
-          icon="mdi-account-clock-outline" density="comfortable" title={m.value.blame}
+        <TipBtn size="small" variant={blameOn.has(f.path) ? "tonal" : "text"} color={blameOn.has(f.path) ? "primary" : undefined}
+          icon="mdi-account-clock-outline" tip={m.value.blame}
           data-git-blame-toggle={blameOn.has(f.path) ? "on" : "off"}
           onClick={() => (blameOn.has(f.path) ? blameOn.delete(f.path) : blameOn.add(f.path))} />
       );
@@ -452,11 +463,11 @@ export default defineComponent({
       return [
         blameBtn,
         git.fileUrl && !deleted && (
-          <VBtn size="small" variant="text" icon="mdi-file-download-outline" density="comfortable" title={m.value.downloadFile}
+          <TipBtn size="small" icon="mdi-file-download-outline" tip={m.value.downloadFile}
             href={git.fileUrl(d.hash, f.path)} download={f.path.slice(f.path.lastIndexOf("/") + 1)} data-git-download-file />
         ),
         git.patchUrl && (
-          <VBtn size="small" variant="text" icon="mdi-file-compare" density="comfortable" title={m.value.downloadPatch}
+          <TipBtn size="small" icon="mdi-file-compare" tip={m.value.downloadPatch}
             href={git.patchUrl(d.hash, f.path)} download data-git-download-patch />
         ),
       ];
@@ -476,28 +487,6 @@ export default defineComponent({
         {b.default && <span class="gad-git__git-default">{m.value.defaultBranch}</span>}
       </div>
     );
-    // a select of the branches (and of the working files, withWork)
-    const branchSelect = (value: string, onChange: (v: string) => void, attrs: Record<string, unknown>, withWork = false, none = "") => (
-      <select class="gad-git__git-select" value={value} onChange={(e: Event) => onChange((e.target as HTMLSelectElement).value)} {...attrs}>
-        {none && <option value="">{none}</option>}
-        {withWork && <option value={WORK}>{m.value.workingFiles}</option>}
-        {!branches.value.some((b) => b.name === value) && value && value !== WORK && <option value={value}>{short(value)}</option>}
-        {branches.value.map((b) => (
-          <option value={b.name}>{branchLabel(b)}</option>
-        ))}
-      </select>
-    );
-    // a ref typed or chosen: a branch, a commit's hash
-    const refInput = (value: string, onChange: (v: string) => void, attrs: Record<string, unknown>, withWork = false) => (
-      <span class="gad-git__git-ref-input">
-        <input class="gad-git__git-select" list="gad-ide-git-refs" value={value === WORK ? m.value.workingFiles : value}
-          onChange={(e: Event) => {
-            const v = (e.target as HTMLInputElement).value.trim();
-            onChange(withWork && (v === m.value.workingFiles || v === "") ? WORK : v);
-          }} {...attrs} />
-      </span>
-    );
-
     // the widths of the branches and of the log, the height of the message:
     // dragged by their edges, kept across visits
     const branchesW = useStoredSize("gad-ide.git.branches", 180, 100, 600);
@@ -537,7 +526,9 @@ export default defineComponent({
           {mode.value === "file" && canCompare && !second.value && (
             <div class="gad-git__git-with" data-git-compare-with-bar>
               <span>{m.value.compareWith}</span>
-              {branchSelect(compareWith.value, (x) => (compareWith.value = x), { "data-git-compare-with": "" }, true, "—")}
+              <RefPicker api={git} messages={m.value} branches={branches.value} allow={["work", "branch", "commit"]} clearable
+                modelValue={pickWith.value} placeholder="—" title={m.value.compareWith}
+                {...{ "onUpdate:modelValue": (v: PickedRef | null) => (pickWith.value = v) }} data-git-compare-with="" />
             </div>
           )}
           {d && !compareWith.value ? (
@@ -703,7 +694,10 @@ export default defineComponent({
           {mode.value !== "compare" && mode.value !== "stash" && (
             <label class="gad-git__git-field">
               <span>{m.value.branch}</span>
-              {branchSelect(branch.value, (v) => (branch.value = v), { "data-git-branch-select": "", title: m.value.branch })}
+              <RefPicker api={git} messages={m.value} branches={branches.value} allow={["branch"]}
+                modelValue={branch.value ? { ...branchRef(branch.value), label: branchLabel(branches.value.find((b) => b.name === branch.value) ?? { name: branch.value } as GitBranch) } : null}
+                title={m.value.branch} {...{ "onUpdate:modelValue": (v: PickedRef | null) => v && (branch.value = v.ref) }}
+                data-git-branch-select="" />
             </label>
           )}
           {mode.value === "file" && (
@@ -711,7 +705,7 @@ export default defineComponent({
               <span>{m.value.file}</span>
               <input class="gad-git__git-select gad-git__git-path" value={filePath.value} placeholder={m.value.chooseFile}
                 onInput={(e: Event) => (filePath.value = (e.target as HTMLInputElement).value)} data-git-file-path />
-              <VBtn size="x-small" variant="text" icon="mdi-file-arrow-left-right-outline" title={m.value.useOpenFile}
+              <TipBtn icon="mdi-file-arrow-left-right-outline" tip={m.value.useOpenFile}
                 disabled={!ctx.openPath.value} data-git-use-open onClick={() => (filePath.value = ctx.openPath.value)} />
             </label>
           )}
@@ -719,24 +713,22 @@ export default defineComponent({
             <>
               <label class="gad-git__git-field">
                 <span>{m.value.compareFrom}</span>
-                {refInput(compareA.value, (v) => (compareA.value = v), { "data-git-compare-a": "" })}
+                <RefPicker api={git} messages={m.value} branches={branches.value} allow={["branch", "commit", "stash"]}
+                  modelValue={pickA.value} title={m.value.compareFrom}
+                  {...{ "onUpdate:modelValue": (v: PickedRef | null) => (pickA.value = v) }} data-git-compare-a="" />
               </label>
-              <VBtn size="x-small" variant="text" icon="mdi-swap-horizontal" title={m.value.swap} data-git-swap
-                disabled={compareB.value === WORK}
-                onClick={() => ([compareA.value, compareB.value] = [compareB.value, compareA.value])} />
+              <TipBtn icon="mdi-swap-horizontal" tip={m.value.swap} data-git-swap
+                disabled={pickB.value?.kind === "work"}
+                onClick={() => ([pickA.value, pickB.value] = [pickB.value, pickA.value])} />
               <label class="gad-git__git-field">
                 <span>{m.value.compareTo}</span>
-                {refInput(compareB.value, (v) => (compareB.value = v), { "data-git-compare-b": "" }, true)}
+                <RefPicker api={git} messages={m.value} branches={branches.value} allow={["work", "branch", "commit", "stash"]}
+                  modelValue={pickB.value} title={m.value.compareTo}
+                  {...{ "onUpdate:modelValue": (v: PickedRef | null) => (pickB.value = v) }} data-git-compare-b="" />
               </label>
-              <datalist id="gad-ide-git-refs">
-                <option value={m.value.workingFiles} />
-                {branches.value.map((b) => (
-                  <option value={b.name}>{b.default ? m.value.defaultBranch : ""}</option>
-                ))}
-              </datalist>
             </>
           )}
-          <VBtn size="x-small" variant="text" icon="mdi-refresh" title={m.value.refresh} data-git-refresh onClick={refresh} />
+          <TipBtn icon="mdi-refresh" tip={m.value.refresh} data-git-refresh onClick={refresh} />
           {loading.value > 0 && <VProgressCircular indeterminate size={14} width={2} color="primary" />}
           {error.value && <span class="text-error text-body-2 ms-2 gad-git__git-ellipsis" data-git-error>{error.value}</span>}
           <span class="gad-git__git-spacer" />
