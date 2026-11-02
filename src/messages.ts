@@ -97,6 +97,7 @@ export interface GitMessages {
   /** the Git panel's stashes: the mode, its list, its actions and dialogs */
   stashes: string;
   stashChanges: string;
+  newStash: string;
   stashMessage: string;
   includeUntracked: string;
   keepIndex: string;
@@ -210,6 +211,7 @@ export const DEFAULT_GIT_MESSAGES: GitMessages = {
   tree: "Tree",
   stashes: "Stashes",
   stashChanges: "Stash changes",
+  newStash: "New stash",
   stashMessage: "Message (optional)",
   includeUntracked: "Include untracked files",
   keepIndex: "Keep the index (what is staged stays)",
@@ -318,6 +320,7 @@ export const GIT_MESSAGES_PT_BR: GitMessages = {
   tree: "Árvore",
   stashes: "Stashes",
   stashChanges: "Guardar as alterações (stash)",
+  newStash: "Nova stash",
   stashMessage: "Mensagem (opcional)",
   includeUntracked: "Incluir os arquivos novos (não rastreados)",
   keepIndex: "Manter o índice (o que está no stage fica)",

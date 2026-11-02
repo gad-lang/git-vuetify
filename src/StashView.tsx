@@ -300,13 +300,23 @@ export default defineComponent({
             <div class="gad-git__git-head">
               <span>{m.value.stashes}</span>
               <span class="gad-git__git-spacer" />
-              <VBtn size="x-small" variant="text" density="comfortable" icon="mdi-archive-arrow-down-outline" title={m.value.stashChanges}
-                data-git-stash-new onClick={() => open("new")} />
+              <VBtn size="x-small" variant="tonal" color="primary" prependIcon="mdi-plus" class="text-none" title={m.value.stashChanges}
+                data-git-stash-new onClick={() => open("new")}>
+                {m.value.newStash}
+              </VBtn>
               <VBtn size="x-small" variant="text" density="comfortable" icon="mdi-delete-sweep-outline" title={m.value.clearStashes}
                 disabled={!stashes.value.length} data-git-stash-clear onClick={() => open("clear")} />
               <HelpButton id="stashes" title={m.value.stashes} text={m.value.helpStashes} />
             </div>
-            {!stashes.value.length && <div class="pa-3 text-medium-emphasis text-body-2" data-git-no-stashes>{m.value.noStashes}</div>}
+            {!stashes.value.length && (
+              <div class="pa-3 text-medium-emphasis text-body-2" data-git-no-stashes>
+                <div class="mb-2">{m.value.noStashes}</div>
+                <VBtn size="small" variant="tonal" color="primary" prependIcon="mdi-archive-arrow-down-outline" class="text-none"
+                  onClick={() => open("new")}>
+                  {m.value.stashChanges}
+                </VBtn>
+              </div>
+            )}
             {stashes.value.map((s) => (
               <div
                 key={s.hash}
