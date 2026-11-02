@@ -26,6 +26,7 @@ export {
   type GitBranch,
   type GitCommit,
   type GitCommitDetail,
+  type GitStash,
   type GitLogFilter,
 } from "./api";
 export {

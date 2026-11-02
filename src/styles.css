@@ -349,3 +349,7 @@
   accent-color: rgb(var(--v-theme-primary));
   cursor: pointer;
 }
+/* the commit of a branch compared with a stash: its subject too */
+.gad-git__git-select--wide {
+  max-width: 420px;
+}

@@ -41,4 +41,28 @@ describe("createHttpGitApi with a repository", () => {
     expect(await createHttpGitApi("api/ide/").root!()).toBe("src");
     expect(urls[urls.length - 1]).toBe("api/ide/git/root");
   });
+  test("stashes: the routes", async () => {
+    const got: { url: string; method?: string; body?: string }[] = [];
+    globalThis.fetch = (async (u: string, init?: RequestInit) => {
+      got.push({ url: String(u), method: init?.method, body: init?.body ? String(init.body) : undefined });
+      return new Response(JSON.stringify({ stashes: [{ ref: "stash@{0}" }], ref: "stash@{0}" }), { status: 200 });
+    }) as typeof fetch;
+    const api = createHttpGitApi("api/ide/", "r");
+    expect((await api.stashes!())[0].ref).toBe("stash@{0}");
+    await api.stashDiff!("abc", "a.gad", undefined, true);
+    await api.stashNew!({ message: "m", untracked: true });
+    await api.stashApply!("stash@{1}", true, false);
+    await api.stashBranch!("stash@{0}", "b");
+    await api.stashDrop!("stash@{0}");
+    await api.stashClear!();
+    expect(got.map((g) => `${g.method} ${g.url} ${g.body ?? ""}`)).toEqual([
+      "GET api/ide/git/stashes?repo=r ",
+      "GET api/ide/git/stash/diff?repo=r&hash=abc&path=a.gad&untracked=1 ",
+      'POST api/ide/git/stash/new?repo=r {"message":"m","untracked":true}',
+      'POST api/ide/git/stash/apply?repo=r {"ref":"stash@{1}","pop":true,"index":false}',
+      'POST api/ide/git/stash/branch?repo=r {"ref":"stash@{0}","branch":"b"}',
+      'POST api/ide/git/stash/drop?repo=r {"ref":"stash@{0}"}',
+      "POST api/ide/git/stash/clear?repo=r {}",
+    ]);
+  });
 });

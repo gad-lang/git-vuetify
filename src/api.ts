@@ -69,6 +69,17 @@ export interface GitBlame {
 
 /** GitCommitDetail is a commit with its full message and the files it
  * changed (from its first parent: the commit before). */
+/** GitStash is a stash: its ref (stash@{n}), commit, message, the branch it
+ * was made on, its date. */
+export interface GitStash {
+  index: number;
+  ref: string;
+  hash: string;
+  message: string;
+  branch?: string;
+  date: string;
+}
+
 export interface GitCommitDetail extends GitCommit {
   message: string;
   files: DiffFile[];
@@ -83,6 +94,21 @@ export interface GitApi {
   diff: (path: string, from?: string) => Promise<DiffFile>;
   /** writes the file changed with content (edited in the compare) */
   save: (path: string, content: string) => Promise<void>;
+  /** the stashes, the newest first */
+  stashes?: () => Promise<GitStash[]>;
+  /** a stash: its message, the files it keeps (untracked ones "?") */
+  stash?: (hash: string) => Promise<GitCommitDetail>;
+  /** the diff of a file of a stash (untracked: one of its new files) */
+  stashDiff?: (hash: string, path: string, from?: string, untracked?: boolean) => Promise<DiffFile>;
+  /** the changes of the workspace stashed (untracked: the new files too;
+   * keepIndex: what is staged left) */
+  stashNew?: (o: { message?: string; untracked?: boolean; keepIndex?: boolean }) => Promise<{ ref: string }>;
+  /** a stash put back (pop: dropped then; index: the index too) */
+  stashApply?: (ref: string, pop?: boolean, index?: boolean) => Promise<void>;
+  /** a stash put back in a new branch (from the commit it was made on) */
+  stashBranch?: (ref: string, branch: string) => Promise<void>;
+  stashDrop?: (ref: string) => Promise<void>;
+  stashClear?: () => Promise<void>;
   /** the workspace's folder in the repository ("" its root): the folders
    * shown from the repository's root */
   root?: () => Promise<string>;
@@ -147,6 +173,15 @@ export function createHttpGitApi(base = "", repo = ""): GitApi {
     diff: (path, from) => jsonFetch<DiffFile>("GET", u("git/diff?") + q({ path, from })),
     save: (path, content) => jsonFetch<unknown>("POST", u("git/save"), { path, content }).then(() => undefined),
     root: () => jsonFetch<{ root?: string }>("GET", u("git/root")).then((r) => r.root || ""),
+    stashes: () => jsonFetch<{ stashes: GitStash[] }>("GET", u("git/stashes")).then((r) => r.stashes || []),
+    stash: (hash) => jsonFetch<GitCommitDetail>("GET", u("git/stash?") + q({ hash })),
+    stashDiff: (hash, path, from, untracked) =>
+      jsonFetch<DiffFile>("GET", u("git/stash/diff?") + q({ hash, path, from, untracked: untracked ? 1 : undefined })),
+    stashNew: (o) => jsonFetch<{ ref: string }>("POST", u("git/stash/new"), o),
+    stashApply: (ref, pop, index) => jsonFetch<unknown>("POST", u("git/stash/apply"), { ref, pop, index }).then(() => undefined),
+    stashBranch: (ref, branch) => jsonFetch<unknown>("POST", u("git/stash/branch"), { ref, branch }).then(() => undefined),
+    stashDrop: (ref) => jsonFetch<unknown>("POST", u("git/stash/drop"), { ref }).then(() => undefined),
+    stashClear: () => jsonFetch<unknown>("POST", u("git/stash/clear"), {}).then(() => undefined),
     commitNew: (message, paths) => jsonFetch<{ hash: string; subject: string }>("POST", u("git/commit/new"), { message, paths }),
     branches: () =>
       jsonFetch<{ branches: GitBranch[]; default?: string }>("GET", u("git/branches")).then((r) =>

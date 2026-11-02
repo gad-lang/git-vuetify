@@ -94,6 +94,32 @@ export interface GitMessages {
   /** the files as a tree of their folders (else a list: each folder, from
    * the repository's root, with its files) */
   tree: string;
+  /** the Git panel's stashes: the mode, its list, its actions and dialogs */
+  stashes: string;
+  stashChanges: string;
+  stashMessage: string;
+  includeUntracked: string;
+  keepIndex: string;
+  unstash: string;
+  popStash: string;
+  reinstateIndex: string;
+  asNewBranch: string;
+  applyStash: string;
+  dropStash: string;
+  dropStashConfirm: string;
+  clearStashes: string;
+  clearStashesConfirm: string;
+  noStashes: string;
+  chooseStash: string;
+  stashed: string;
+  stashChangesOf: string;
+  stashKind: string;
+  stashOf: string;
+  commitOfBranch: string;
+  branchTip: string;
+  helpStashes: string;
+  cancel: string;
+  ok: string;
   commitAll: string;
   committed: string;
   commitNone: string;
@@ -182,6 +208,32 @@ export const DEFAULT_GIT_MESSAGES: GitMessages = {
   noChanges: "No changes.",
   commit: "Commit",
   tree: "Tree",
+  stashes: "Stashes",
+  stashChanges: "Stash changes",
+  stashMessage: "Message (optional)",
+  includeUntracked: "Include untracked files",
+  keepIndex: "Keep the index (what is staged stays)",
+  unstash: "Unstash",
+  popStash: "Pop the stash (drop it after applying)",
+  reinstateIndex: "Reinstate the index",
+  asNewBranch: "As a new branch (optional)",
+  applyStash: "Apply",
+  dropStash: "Drop",
+  dropStashConfirm: "Drop this stash? It cannot be undone.",
+  clearStashes: "Clear all",
+  clearStashesConfirm: "Drop all the stashes? It cannot be undone.",
+  noStashes: "No stashes.",
+  chooseStash: "Choose a stash.",
+  stashed: "Stashed",
+  stashChangesOf: "Its changes",
+  stashKind: "Compare with",
+  stashOf: "Stash",
+  commitOfBranch: "Commit",
+  branchTip: "the branch's tip",
+  helpStashes:
+    "The changes put aside (stashed), the newest first.\n- The + button stashes the changes of the workspace (a message, the untracked files too, the index kept).\n- Click a stash to see its changes, file by file; \"Compare with\" compares it with the working files, a branch (its tip or a commit of its log) or another stash.\n- Unstash puts it back: applied or popped (dropped after), the index reinstated, or as a new branch.\n- Drop removes one; Clear all, every one.",
+  cancel: "Cancel",
+  ok: "OK",
   commitAll: "All files",
   committed: "Committed",
   commitNone: "Choose the files to commit.",
@@ -264,6 +316,32 @@ export const GIT_MESSAGES_PT_BR: GitMessages = {
   noChanges: "Nenhuma alteração.",
   commit: "Commit",
   tree: "Árvore",
+  stashes: "Stashes",
+  stashChanges: "Guardar as alterações (stash)",
+  stashMessage: "Mensagem (opcional)",
+  includeUntracked: "Incluir os arquivos novos (não rastreados)",
+  keepIndex: "Manter o índice (o que está no stage fica)",
+  unstash: "Recuperar (unstash)",
+  popStash: "Retirar a stash (excluí-la depois de aplicar)",
+  reinstateIndex: "Restaurar o índice",
+  asNewBranch: "Como uma branch nova (opcional)",
+  applyStash: "Aplicar",
+  dropStash: "Excluir",
+  dropStashConfirm: "Excluir esta stash? Não dá para desfazer.",
+  clearStashes: "Excluir todas",
+  clearStashesConfirm: "Excluir todas as stashes? Não dá para desfazer.",
+  noStashes: "Nenhuma stash.",
+  chooseStash: "Escolha uma stash.",
+  stashed: "Guardado em",
+  stashChangesOf: "As alterações dela",
+  stashKind: "Comparar com",
+  stashOf: "Stash",
+  commitOfBranch: "Commit",
+  branchTip: "a ponta da branch",
+  helpStashes:
+    "As alterações guardadas à parte (stash), as mais novas primeiro.\n- O botão + guarda as alterações da pasta (uma mensagem, os arquivos novos também, o índice mantido).\n- Clique numa stash para ver as alterações dela, arquivo por arquivo; \"Comparar com\" a compara com os arquivos locais, uma branch (a ponta ou um commit do log dela) ou outra stash.\n- Recuperar a põe de volta: aplicada ou retirada (excluída depois), o índice restaurado, ou como uma branch nova.\n- Excluir remove uma; Excluir todas, todas.",
+  cancel: "Cancelar",
+  ok: "OK",
   commitAll: "Todos os arquivos",
   committed: "Commit feito",
   commitNone: "Escolha os arquivos do commit.",

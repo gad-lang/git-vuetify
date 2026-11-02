@@ -14,6 +14,7 @@
 //     or the working one.
 //   - Compare: what changed from a ref to another — branches, commits (their
 //     hashes) or the working files —, file by file.
+//   - Stashes (api.stashes): the stashes, managed (StashView).
 //
 // The log and the history are filtered (the filter icon: a search, authors,
 // a file's name, content, the message, a period); a file's view shows, by
@@ -28,6 +29,7 @@ import { useGitRoot } from "./root";
 import BlameView, { NOT_COMMITTED } from "./BlameView";
 import { graphRows, type GraphRow } from "./gitGraph";
 import { ResizeHandle, useStoredSize } from "./resize";
+import StashView from "./StashView";
 import HelpButton from "./HelpButton";
 
 const message = (e: unknown) => String((e as { message?: string })?.message || e);
@@ -64,7 +66,7 @@ function Graph(props: { row: GraphRow }) {
   );
 }
 
-type Mode = "log" | "file" | "compare";
+type Mode = "log" | "file" | "compare" | "stash";
 const MODE_KEY = "gad-ide.git.mode";
 // WORK is, as a compare's side, the working files
 const WORK = "@work";
@@ -105,19 +107,25 @@ export default defineComponent({
     /** the texts, over the app's vue-i18n's (gadGit) and the defaults */
     messages: { type: Object as PropType<Partial<GitMessages>>, default: undefined },
   },
+  emits: {
+    /** the working files changed here (a stash made, put back) */
+    changed: () => true,
+  },
   // slots: actions — at the end of the bar (an expand button)
-  setup(props, { slots }) {
+  setup(props, { slots, emit }) {
     const git = props.api;
     // the folders of the files' lists from the repository's root
     const root = useGitRoot(git);
     const m = useGitMessages(() => props.messages);
     const ctx = { openPath: computed(() => props.openPath), dark: computed(() => props.dark) };
     const canCompare = !!(git.compare && git.compareDiff);
+    const canStash = !!(git.stashes && git.stash && git.stashDiff);
+    const stashView = ref<{ refresh(): Promise<void> }>();
 
     const readMode = (): Mode => {
       try {
         const v = localStorage.getItem(MODE_KEY);
-        if (v === "log" || v === "file" || (v === "compare" && canCompare)) return v;
+        if (v === "log" || v === "file" || (v === "compare" && canCompare) || (v === "stash" && canStash)) return v;
       } catch { /* no storage */ }
       return "log";
     };
@@ -231,7 +239,7 @@ export default defineComponent({
     let logSeq = 0;
     async function loadLog(next = false) {
       const n = ++logSeq;
-      if (mode.value === "compare") return;
+      if (mode.value === "compare" || mode.value === "stash") return;
       const path = mode.value === "file" ? filePath.value.trim() : "";
       if (mode.value === "file" && !path) {
         commits.value = [];
@@ -418,6 +426,7 @@ export default defineComponent({
     });
     const refresh = async () => {
       await loadBranches();
+      if (mode.value === "stash") await stashView.value?.refresh();
       await loadLog();
       if (mode.value === "compare") await showCompare();
       else if (selected.value) await show();
@@ -689,8 +698,9 @@ export default defineComponent({
             <VBtn value="log" size="x-small" prependIcon="mdi-source-commit" class="text-none" data-git-mode="log">{m.value.log}</VBtn>
             <VBtn value="file" size="x-small" prependIcon="mdi-file-clock-outline" class="text-none" data-git-mode="file">{m.value.fileHistory}</VBtn>
             {canCompare && <VBtn value="compare" size="x-small" prependIcon="mdi-compare-horizontal" class="text-none" data-git-mode="compare">{m.value.compare}</VBtn>}
+            {canStash && <VBtn value="stash" size="x-small" prependIcon="mdi-archive-outline" class="text-none" data-git-mode="stash">{m.value.stashes}</VBtn>}
           </VBtnToggle>
-          {mode.value !== "compare" && (
+          {mode.value !== "compare" && mode.value !== "stash" && (
             <label class="gad-git__git-field">
               <span>{m.value.branch}</span>
               {branchSelect(branch.value, (v) => (branch.value = v), { "data-git-branch-select": "", title: m.value.branch })}
@@ -732,7 +742,11 @@ export default defineComponent({
           <span class="gad-git__git-spacer" />
           {slots.actions?.()}
         </div>
-        {mode.value === "compare" ? (
+        {mode.value === "stash" ? (
+          <StashView ref={stashView} api={git} messages={m.value} dark={ctx.dark.value} root={root.value} branches={branches.value}
+            onChanged={() => { emit("changed"); void loadBranches(); }}
+            onBusy={(d: number) => (loading.value += d)} onError={(e: string) => (error.value = e)} />
+        ) : mode.value === "compare" ? (
           <div class="gad-git__git-cols">
             <div class="gad-git__git-detail" style={{ borderLeft: 0 }}>
               <span class="gad-git__help-corner"><HelpButton id="compare" title={m.value.compare} text={m.value.helpCompare} /></span>
