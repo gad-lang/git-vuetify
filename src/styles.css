@@ -400,3 +400,7 @@
 .gad-git__picker-search {
   flex: 0 0 auto;
 }
+.gad-git__picker-hash {
+  font-size: 11px;
+  opacity: 0.75;
+}

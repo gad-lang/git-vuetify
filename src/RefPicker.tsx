@@ -7,6 +7,8 @@ import { computed, defineComponent, ref, watch, type PropType } from "vue";
 import { VBtn, VCard, VCardText, VCardTitle, VChip, VDialog, VSpacer, VTab, VTabs, VTextField } from "./vuetify";
 import type { GitMessages } from "./messages";
 import type { GitApi, GitBranch, GitCommit, GitStash } from "./api";
+import { graphRows } from "./gitGraph";
+import Graph from "./Graph";
 
 /** PickedRef is what a RefPicker chose: its kind, its ref (the branch's
  * name, the commit's or the stash's hash; "" the working files), what is
@@ -67,6 +69,9 @@ export default defineComponent({
     const commits = ref<GitCommit[]>([]);
     const more = ref(false);
     const stashes = ref<GitStash[]>([]);
+    // the log's filter: the start of a hash, or text of the message (the
+    // server's search)
+    const logQ = ref("");
     const error = ref("");
 
     const pick = (v: PickedRef | null) => {
@@ -78,7 +83,8 @@ export default defineComponent({
     async function loadLog(next = false) {
       if (!branch.value) return;
       try {
-        const cs = await props.api.log(branch.value, next ? commits.value.length : 0, PAGE);
+        const q = logQ.value.trim();
+        const cs = await props.api.log(branch.value, next ? commits.value.length : 0, PAGE, undefined, q ? { q } : undefined);
         commits.value = next ? [...commits.value, ...cs] : cs;
         more.value = cs.length === PAGE;
       } catch (e) {
@@ -87,7 +93,13 @@ export default defineComponent({
     }
     watch(branch, () => {
       commits.value = [];
+      logQ.value = "";
       if (can("commit")) void loadLog();
+    });
+    let qTimer: ReturnType<typeof setTimeout> | undefined;
+    watch(logQ, () => {
+      clearTimeout(qTimer);
+      qTimer = setTimeout(() => void loadLog(), 300);
     });
     watch(open, async (v) => {
       if (!v) return;
@@ -103,6 +115,8 @@ export default defineComponent({
       }
     });
 
+    // the log of the branch as the Git panel's: a graph
+    const rows = computed(() => graphRows(commits.value));
     const shown = computed(() => {
       const q = search.value.trim().toLowerCase();
       return props.branches.filter((b) => !q || b.name.toLowerCase().includes(q));
@@ -187,13 +201,29 @@ export default defineComponent({
                         <div class="pa-2 text-medium-emphasis text-body-2">{m.value.chooseBranch}</div>
                       ) : (
                         <div class="gad-git__picker-list">
+                          <VTextField modelValue={logQ.value} {...{ "onUpdate:modelValue": (v: string | null) => (logQ.value = v ?? "") }}
+                            placeholder={m.value.searchHint} prependInnerIcon="mdi-pound" density="compact" variant="outlined" hideDetails
+                            clearable class="mb-1 gad-git__picker-search" data-git-pick-log-q />
                           {row("tip", ICON.branch, `${branch.value} — ${m.value.branchTip}`, "", false,
                             () => pick(branchRef(branch.value)), { "data-git-pick-tip": branch.value })}
-                          {commits.value.map((c) =>
-                            row(c.hash, ICON.commit, `${c.hash.slice(0, 8)} · ${c.subject}`, shortDate(c.date), props.modelValue?.ref === c.hash,
-                              () => pick({ kind: "commit", ref: c.hash, label: `${branch.value} @ ${c.hash.slice(0, 8)}`, date: c.date, branch: branch.value }),
-                              { "data-git-pick-commit": c.hash }),
-                          )}
+                          {commits.value.map((c, i) => (
+                            <div
+                              key={c.hash}
+                              class={["gad-git__git-commit", { "gad-git__git-commit--active": props.modelValue?.ref === c.hash }]}
+                              title={`${c.hash.slice(0, 10)} — ${c.author}, ${shortDate(c.date)}`}
+                              data-git-pick-commit={c.hash}
+                              onClick={() => pick({ kind: "commit", ref: c.hash, label: `${branch.value} @ ${c.hash.slice(0, 8)}`, date: c.date, branch: branch.value })}
+                            >
+                              {logQ.value.trim() ? <i class="mdi mdi-circle-small gad-git__git-dot" /> : <Graph row={rows.value[i]} />}
+                              {(c.refs ?? []).map((x) => (
+                                <span class="gad-git__git-ref">{x}</span>
+                              ))}
+                              <code class="gad-git__picker-hash">{c.hash.slice(0, 8)}</code>
+                              <span class="gad-git__git-ellipsis gad-git__git-subject">{c.subject}</span>
+                              <span class="gad-git__git-meta">{c.author}</span>
+                              <span class="gad-git__git-meta">{shortDate(c.date)}</span>
+                            </div>
+                          ))}
                           {more.value && (
                             <VBtn size="small" variant="text" block onClick={() => loadLog(true)}>{m.value.more}</VBtn>
                           )}
